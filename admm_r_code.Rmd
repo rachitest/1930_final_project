@@ -1,0 +1,150 @@
+---
+title: "ADMM_rpackage"
+author: "Pagna Sok"
+date: "11/27/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ADMM R implementation
+
+## ADMM R function
+```{r}
+#ADMM algorithm function
+cg_admm <- function(X, b, lambda, tol = 1e-4, maxit = 1000) {
+  n <- nrow(X)
+  p <- ncol(X)
+
+  #initial variables
+  u <- matrix(0, nrow = p, ncol = 1)
+  z <- matrix(0, nrow = p, ncol = 1)
+  w <- matrix(0, nrow = p, ncol = 1)
+  
+  b_matrix <- matrix(b, nrow = n, ncol=1, byrow = F)
+
+  #identity matrix
+  I <- diag(p)
+
+  #pre-compute matrices for efficiency
+  XtX_over_n_plus_I_inv <- solve((1/n) * t(X) %*% X + 0.01 * I + diag(p))
+
+  #ADMM loop
+  for (iter in 1:maxit) {
+    print(iter)
+    #update u
+    u <- XtX_over_n_plus_I_inv %*% (t(X) %*% b_matrix + rho * (z - w))
+
+    #update z (soft-thresholding for L1 penalty)
+    z <- soft_threshold(u + w, lambda / rho)
+
+    #update w
+    w <- w + u - z
+
+    #check for convergence
+    if (norm(u - z) < tol) {
+      break
+    }
+  }
+
+  #calculate the objective value
+  objective_value <- 0.5 * t(u) %*% ((1/n) * t(X) %*% X + 0.01 * I + diag(p)) %*% u - t(u) %*% b + lambda * sum(abs(u))
+
+  return(list(u = u, objective_value = objective_value))
+}
+
+# Soft-thresholding function
+soft_threshold <- function(x, lambda) {
+  pmax(0, x - lambda) - pmax(0, -x - lambda)
+}
+```
+
+
+## Simtuation of ADMM R function
+```{r}
+#set parameters as GC code
+#set parameters for simulation
+rho <- 0.9
+n <- 20
+p <- 4
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+
+#lambda value
+lambda_value <- 0.01
+
+#ADMM algorithms and compare their results
+result_admm <- cg_admm(X, b, lambda_value)
+
+print(result_admm)
+```
+
+
+
+## Simtuation of ADMM R function
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(123)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+
+#lambda value
+lambda_value <- 0.1
+
+#ADMM algorithms and compare their results
+result_admm <- cg_admm(X, b, lambda_value)
+
+print(result_admm)
+```
+
+
+## Stimulation with varying lambda between 0.01 and 0.5
+```{r}
+#lambda values to test, increaseing by 0.01
+lambda_values <- seq(0.01, 0.5, by = 0.01)
+
+#list of results
+results <- list()
+
+#run the algorithm for each lambda value
+for (lambda in lambda_values) {
+  result <- cg_admm(X, b, lambda)
+  results[[as.character(lambda)]] <- result
+}
+
+#print resutls
+print(results)
+```
+
