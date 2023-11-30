@@ -1,0 +1,53 @@
+---
+title: "Method Comparison"
+author: "Caroline Schaefer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This script runs the CD and ADMM algorithms and compares the results using identical random sample inputs.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("project_functions.R")
+library(MASS)
+```
+
+
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 4
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+#lambda value
+lambda_value <- 0.01
+
+#ADMM  and CD algorithms and compare their results
+result_admm <- cg_admm(X, b, lambda_value)
+re <- cg_cd(X, b, lambda_value)
+
+```
+
+
+
+```{r}
+print(re)
+print(result_admm)
+```
+
