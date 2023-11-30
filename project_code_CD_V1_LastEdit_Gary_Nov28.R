@@ -31,7 +31,7 @@ cg_cd <- function(X,b,lambda,tol=1e-4,maxiter=1000,quiet=FALSE){
 
 #Simulation for 4 parametes and 20 samples 
 set.seed(100)
-n <- 20 #Sample Size
+n <- 200 #Sample Size
 
 p=4 # number of parameter 
 
