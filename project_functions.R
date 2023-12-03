@@ -82,5 +82,5 @@ cg_admm <- function(X, b, lambda, tol = 1e-4, maxit = 1000) {
   #calculate the objective value
   objective_value <- 0.5 * t(u) %*% ((1/n) * t(X) %*% X + 0.01 * I + diag(p)) %*% u - t(u) %*% b + lambda * sum(abs(u))
   
-  return(list(u = u, objective_value = objective_value))
+  return(u = u)
 }

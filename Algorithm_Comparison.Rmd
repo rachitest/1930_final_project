@@ -1,13 +1,14 @@
 ---
-title: "Method Comparison"
-author: "Caroline Schaefer"
+title: "PH1930 Final Project: Method Comparison"
+author: "Group 2: Yu Bin Chen, Rachit Sabharwal, Caroline Schaefer, Pagna Sok"
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document: default
 ---
 
-This script runs the CD and ADMM algorithms and compares the results using identical random sample inputs.
+##### This report and scripts are being submitted early for review and feedback.  
+It contains results for the CD and ADMM algorithms using both R and C++ then compares the results using identical random sample inputs.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -17,6 +18,7 @@ library(RcppArmadillo)
 
 source("project_functions.R")
 sourceCpp("coordinate_descent_algo.cpp")
+sourceCpp("admm_cpp.cpp")
 ```
 
 
@@ -45,16 +47,25 @@ b <- c(1, rep(0, p - 1))
 lambda_value <- 0.01
 
 #ADMM  and CD algorithms and compare their results
-result_admm <- cg_admm(X, b, lambda_value)
-re <- cg_cd(X, b, lambda_value)
-result_cd_cpp <- cg_cd_cpp(X, b, lambda_value)
+cd_r <- cg_cd(X, b, lambda_value)
+cd_cpp <- cg_cd_cpp(X, b, lambda_value)
+admm_r <- cg_admm(X, b, lambda_value)
+admm_cpp <- cg_admm_cpp(X, b, lambda_value, 1e-4, 1000)
 ```
 
 
+***
+# Coordinate Descent
 
 ```{r}
-print(re)
-print(result_admm)
-print(result_cd_cpp)
+print(cd_r)
+print(cd_cpp)
+```
+
+***
+# ADMM
+```{r}
+print(admm_r)
+print(admm_cpp)
 ```
 
