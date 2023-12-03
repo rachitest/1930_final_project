@@ -2,15 +2,21 @@
 title: "Method Comparison"
 author: "Caroline Schaefer"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 This script runs the CD and ADMM algorithms and compares the results using identical random sample inputs.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-source("project_functions.R")
 library(MASS)
+library(Rcpp)
+library(RcppArmadillo)
+
+source("project_functions.R")
+sourceCpp("coordinate_descent_algo.cpp")
 ```
 
 
@@ -41,7 +47,7 @@ lambda_value <- 0.01
 #ADMM  and CD algorithms and compare their results
 result_admm <- cg_admm(X, b, lambda_value)
 re <- cg_cd(X, b, lambda_value)
-
+result_cd_cpp <- cg_cd_cpp(X, b, lambda_value)
 ```
 
 
@@ -49,5 +55,6 @@ re <- cg_cd(X, b, lambda_value)
 ```{r}
 print(re)
 print(result_admm)
+print(result_cd_cpp)
 ```
 
