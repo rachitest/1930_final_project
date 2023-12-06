@@ -1,0 +1,179 @@
+---
+title: "ADMM_rpackage_v2"
+author: "Pagna Sok"
+date: "12/05/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ADMM R implementation
+
+## ADMM R function
+```{r}
+#soft-thresholding function
+soft_threshold <- function(x, lambda) {
+  pmax(x - lambda, 0) - pmax(-x - lambda, 0)
+}
+
+#function to solve regression using ADMM
+admm <- function(X, b, lambda, rho, max_iter, tolerance=1e-4) {
+  n <- ncol(X)
+  m <- nrow(X)
+  
+  #initial variables
+  u <- matrix(0, n, 1)
+  z <- matrix(0, n, 1)
+  v <- matrix(0, n, 1)
+  
+  #precompute A and A^Tb
+  A <- (1/m) * t(X) %*% X + 0.01 * diag(n)
+  Atb <- t(A) %*% b
+  
+  #ADMM iterations
+  for (k in 1:max_iter) {
+    #u-update
+    u = solve(A + rho * diag(n)) %*% (Atb + rho * (z - v))
+    
+    #z-update
+    z <- soft_threshold(u + v, lambda / rho)
+    
+    #v-update
+    v = v + u - z
+    
+    #check for convergence
+    if (sum(abs(u - z)) < tolerance) {
+      break
+    }
+  }
+  
+  return(list(u = u, z = z))
+}
+```
+
+
+## Test scenario 1
+```{r}
+set.seed(2023)
+## case 1
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+X <- matrix(rnorm(n * p), nrow = n, ncol = p) 
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.2
+rho=0.9
+max_iter=1000
+
+obj <- function(S, b, u, lambda = 0.2) {
+    ucol <- matrix(u, ncol = 1)
+    0.5*t(ucol) %*% S %*% ucol - t(ucol) %*% matrix(b, ncol = 1) + lambda * sum(abs(ucol))
+}
+
+
+result <- admm(X, b, lambda, rho, max_iter)
+u <- result$u
+
+obj(S, b, u, lambda)
+
+
+## case 2
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+X <- matrix(rnorm(n * p), nrow = n, ncol = p) 
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.4
+
+result <- admm(X, b, lambda, rho, max_iter)
+u <- result$u
+
+obj(S, b, u, lambda)
+```
+
+
+## Test scenario 2
+```{r}
+set.seed(2023)
+## case 1
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+Sigma <- diag(0.2, p) + 0.8
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.2
+rho=0.9
+max_iter=1000
+
+obj <- function(S, b, u, lambda = 0.2) {
+    ucol <- matrix(u, ncol = 1)
+    0.5*t(ucol) %*% S %*% ucol - t(ucol) %*% matrix(b, ncol = 1) + lambda * sum(abs(ucol))
+}
+
+result <- admm(X, b, lambda, rho, max_iter)
+u <- result$u
+obj(S, b, u, lambda)
+
+
+## case 2
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+Sigma <- diag(0.2, p) + 0.8
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.4
+
+result <- admm(X, b, lambda, rho, max_iter)
+u <- result$u
+obj(S, b, u, lambda)
+```
+
+
+
+## Simtuation of ADMM R function
+```{r}
+set.seed(100)
+
+#simulation parameters
+n <- 200
+p <- 10
+rho <- 0.9
+lambda_values <- 0.01
+#lambda_values <- c(0.01, 0.1, 0.5, 1, 10, 15, 20)
+#lambda_values <- seq(0.01, 0.5, by = 0.01)
+max_iter=1000
+
+#generate variance covariance matrix pxp
+cov_m<-matrix(nrow=p,ncol=p) 
+for (i in 1:p){
+  for (j in 1:p){
+    cov_m[i, j] <- 0.9^(abs(i-j))
+  }
+}
+
+#simulate multivariate normal observations
+X <- MASS::mvrnorm(n, mu = rep(0, p), Sigma = cov_m)
+
+#create the vector b
+b <- c(1, rep(0, p - 1))
+
+#testing different lambda values
+for (lambda in lambda_values) {
+  result <- admm(X, b, lambda, rho, max_iter)
+  
+  cat("\nResults for lambda =", lambda, ":\n")
+  print(data.frame(True_Coefficients = b_true, Estimated_Coefficients = result$u))
+}
+
+```
+
