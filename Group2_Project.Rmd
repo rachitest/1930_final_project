@@ -107,3 +107,44 @@ admm <- cg_admm(X, b, lambda, tol=1e-4, maxit = 1000)
 
 print(admm)
 ```
+  
+  
+## Question 3
+#### Vary $\lambda$ from 0.01 to 0.5  
+
+```{r}
+lambda_vals <- seq(.01, .5, by=.01)
+admm_result <- vector("list", length = length(lambda_vals))
+
+for (i in 1:length(lambda_vals)){
+  admm_result[[i]] <- cg_admm(X, b, lambda_vals[i], tol=1e-4, maxit = 1000)
+  #print(lambda)
+}
+
+print(matrix(unlist(admm_result[c(1:3,48:50)]), ncol=6, byrow=F))
+```
+
+***
+# Comparison: CD and ADMM  
+#### Computational Speed
+```{r}
+#lambda value
+lambda <- 0.01
+cd_time <- system.time( cg_cd(X, b, lambda, tol=1e-4, maxit = 1000)) 
+admm_time <- system.time( cg_admm(X, b, lambda, tol=1e-4, maxit = 1000))
+
+t = list(cd=cd_time, admm=admm_time)
+print(t)
+```
+
+  
+  
+#### Accuracy  
+
+```{r}
+colnames(cd) = c("CD")
+colnames(admm) = c("ADMM")
+
+cbind( b, cd, admm)
+```
+
