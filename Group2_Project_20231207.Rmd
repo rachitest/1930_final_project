@@ -1,0 +1,131 @@
+---
+title: "PH1930 Final Project"
+author: "Group 2: Yu Bin Chen, Rachit Sabharwal, Caroline Schaefer, Pagna Sok"
+date: "2023-12-10"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+This report contains results of minimizing the equation using the coordinate descent (CD) and alternating direction method of multipliers (ADMM). Functions are run using C++ code and implemented with the R packages Rcpp and RcppArmadillo: 
+
+\begin{align*}
+\frac{1}{2}u^TAu-ub^T+\lambda ||u||_1\\
+\end{align*}  
+
+
+
+#### Here we are loading required packages as well as the CD and ADDM C++ source code
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(MASS)
+library(Rcpp)
+library(RcppArmadillo)
+
+sourceCpp("coordinate_descent_algo.cpp")
+sourceCpp("admm_cpp_v3.cpp")
+```
+
+
+
+## Stimutaiton run 1
+
+#### In stimulation run 1, we will run using these parameters: $\lambda = 0.01$, $\rho = 0.9$, $n = 200$, and $p = 100$.
+
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+#lambda value
+lambda <- 0.01
+
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+
+#ADMM  and CD algorithms and compare their results
+cd <- cg_cd(X, b, lambda, tol=1e-4, maxit = 1000)
+admm <- cg_admm(X, b, lambda, tol=1e-4, maxit = 1000)
+```
+
+***
+#### Here is the result for CD:
+
+```{r}
+print(cd)
+```
+***
+#### Here is the result for ADMM:
+```{r}
+print(admm)
+```
+
+
+## Stimuation run 2
+
+#### In stimulation run 2, we will run using the same parameters as in run 1 but we will be varying the $\lambda$ value between 0.01 and 0.5.
+```{r}
+set.seed(100)
+
+#simulation parameters
+n <- 200
+p <- 10
+rho <- 0.9
+lambda_values <- seq(0.01, 0.5, by = 0.01)
+max_iter=1000
+
+#generate variance covariance matrix pxp
+cov_m<-matrix(nrow=p,ncol=p) 
+for (i in 1:p){
+  for (j in 1:p){
+    cov_m[i, j] <- 0.9^(abs(i-j))
+  }
+}
+
+#simulate multivariate normal observations
+X <- MASS::mvrnorm(n, mu = rep(0, p), Sigma = cov_m)
+
+#create the vector b
+b <- c(1, rep(0, p - 1))
+```
+
+
+***
+#### Here is the result for CD:
+
+```{r}
+#testing different lambda values
+for (lambda in lambda_values) {
+  result <- cg_cd(X, b, lambda, tol=1e-4, maxit = 1000)
+  
+  cat("\nResults for lambda =", lambda, ":\n")
+  print(data.frame(True_Coefficients = b, Estimated_Coefficients = result))
+}
+```
+
+***
+#### Here is the result for ADMM:
+```{r}
+#testing different lambda values
+for (lambda in lambda_values) {
+  result <- cg_admm(X, b, lambda, tol=1e-4, maxit = 1000)
+  
+  cat("\nResults for lambda =", lambda, ":\n")
+  print(data.frame(True_Coefficients = b, Estimated_Coefficients = result))
+}
+```
+

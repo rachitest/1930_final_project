@@ -172,7 +172,7 @@ for (lambda in lambda_values) {
   result <- admm(X, b, lambda, rho, max_iter)
   
   cat("\nResults for lambda =", lambda, ":\n")
-  print(data.frame(True_Coefficients = b_true, Estimated_Coefficients = result$u))
+  print(data.frame(True_Coefficients = b, Estimated_Coefficients = result$u))
 }
 
 ```
