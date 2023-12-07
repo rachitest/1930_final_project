@@ -30,7 +30,7 @@ sourceCpp("admm_cpp_v3.cpp")
 
 ## Stimutaiton run 1
 
-#### In stimulation run 1, we will run using these parameters: $\lambda = 0.01$, $\rho = 0.9$, $n = 200$, and $p = 100$.
+#### In stimulation run 1, we will run using these parameters: $\lambda = 0.01$, $\rho = 0.9$, $n = 200$, and $p = 10$.
 
 ```{r}
 #set parameters for simulation
