@@ -13,7 +13,7 @@ double soft_thresholding_cpp(double x, double a) {
 
 // Coordinate Gradient Descent function
 // [[Rcpp::export]]
-arma::vec cg_cd_cpp(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxiter=1000){
+arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol, int maxiter){
   // Get the number of columns of X
   int p = X.n_cols;
   // Get the number of rows of X

@@ -8,7 +8,7 @@ arma::colvec soft_threshold(arma::colvec x, double lambda)
 }
 
 // [[Rcpp::export]]
-arma::colvec cg_admm_cpp(arma::mat X, arma::colvec b, double lambda, double rho, int max_iter, double tol) {
+arma::colvec cg_admm(arma::mat X, arma::colvec b, double lambda, double tol, int maxit) {
   int m = X.n_rows;
   int n = X.n_cols;
   
@@ -16,6 +16,7 @@ arma::colvec cg_admm_cpp(arma::mat X, arma::colvec b, double lambda, double rho,
     arma::mat u = arma::zeros(n, 1);
     arma::mat z = arma::zeros(n, 1);
     arma::mat v = arma::zeros(n, 1);
+    double rho = 0.9;
     
 //identity matrix
     arma::mat I = arma::eye(n,n);
@@ -25,7 +26,7 @@ arma::colvec cg_admm_cpp(arma::mat X, arma::colvec b, double lambda, double rho,
     arma::mat Atb = A.t() * b;
         
 //ADMM iterations
-        for (int k = 1; k <= max_iter; k++) {
+        for (int k = 1; k <= maxit; k++) {
 //update u
           u = arma::inv(A + rho * I) * (Atb + rho * (z - v));
           
