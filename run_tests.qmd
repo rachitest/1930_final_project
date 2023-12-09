@@ -15,6 +15,7 @@ sourceCpp("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/coordinate_de
 ```
 
 # Define R functions
+
 ```{r}
 soft_thresholding_r <- function(x,a){
   if (x>a) return (x-a)
@@ -56,6 +57,7 @@ obj <- function(S, b, u, lambda = 0.2) {
 # Scenario 1
 
 ## Test 1
+
 ```{r}
 set.seed(2023)
 n <- 100
@@ -119,6 +121,7 @@ print(obj_res_elastic_2)
 # Scenario 2
 
 ## Test 1
+
 ```{r}
 set.seed(2023)
 n <- 100
@@ -150,6 +153,7 @@ print(obj_res_elastic_3)
 ```
 
 ## Test 2
+
 ```{r}
 set.seed(2023)
 n <- 100
