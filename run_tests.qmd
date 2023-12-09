@@ -1,0 +1,181 @@
+---
+title: "test_cases_cg_cd_cpp"
+format: html
+editor: visual
+---
+
+# Load cpp
+
+```{r}
+library(Rcpp)
+library(RcppArmadillo)
+
+#source("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/project_functions.R")
+sourceCpp("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/coordinate_descent_algo_alt.cpp")
+```
+
+# Define R functions
+```{r}
+soft_thresholding_r <- function(x,a){
+  if (x>a) return (x-a)
+  if (x< -a) return (x+a)
+  return(0)
+}
+
+cg_cd_r <- function(X, b, lambda, tol=1e-4, maxiter=1000, quiet=FALSE){
+  n <- dim(X)[1]
+  p <- dim(X)[2]
+  u <- rep(0, p)
+  u <- as.matrix(u); X <- as.matrix(X)
+  ulist <- list(length=(maxiter+1))
+  ulist[[1]] <- u
+  
+  A <- (1/n)*t(X)%*%X + diag(0.01,p)
+  
+  for (j in 1:maxiter){
+    for (k in 1:p){
+      r_k = b[k] - A[k,]%*%u + A[k,k]*u[k]
+      z_k = soft_thresholding_r(r_k, lambda) / A[k,k]
+      u[k] <- z_k
+    }
+    ulist[[(j+1)]] <- u
+    
+    if (norm(ulist[[j]] - u,"F") < tol) { break }
+  } 
+  
+  return(list(u=u)) 
+}
+
+obj <- function(S, b, u, lambda = 0.2) {
+    ucol <- matrix(u, ncol = 1)
+    0.5*t(ucol) %*% S %*% ucol - t(ucol) %*% matrix(b, ncol = 1) + lambda * sum(abs(ucol))
+}
+
+```
+
+# Scenario 1
+
+## Test 1
+```{r}
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+X <- matrix(rnorm(n * p), nrow = n, ncol = p) 
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.2
+
+cg_cd_result = cg_cd(X, b, lambda)
+cd_r = cg_cd_r(X, b, lambda)
+cg_cd_elastic = cg_cd_alpha(X, b, lambda)
+
+print(cg_cd_result)
+print(cd_r)
+print(cg_cd_elastic)
+```
+
+```{r}
+obj_res_1 = obj(S, b, cg_cd_result, lambda)
+obj_res_2 = obj(S, b, cd_r$u, lambda)
+obj_res_elastic = obj(S, b, cg_cd_elastic, lambda)
+
+print(obj_res_1)
+print(obj_res_2)
+print(obj_res_elastic)
+```
+
+## Test 2
+
+```{r}
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+X <- matrix(rnorm(n * p), nrow = n, ncol = p) 
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.4
+
+cg_cd_result_2 = cg_cd(X, b, lambda)
+cd_r_2 = cg_cd_r(X, b, lambda)
+cg_cd_elastic_2 = cg_cd_alpha(X, b, lambda)
+
+print(cg_cd_result_2)
+print(cd_r_2)
+print(cg_cd_elastic_2)
+```
+
+```{r}
+obj_res_3 = obj(S, b, cg_cd_result_2, lambda)
+obj_res_4 = obj(S, b, cd_r_2$u, lambda)
+obj_res_elastic_2 = obj(S, b, cg_cd_elastic_2, lambda)
+
+print(obj_res_3)
+print(obj_res_4)
+print(obj_res_elastic_2)
+```
+
+# Scenario 2
+
+## Test 1
+```{r}
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+Sigma <- diag(0.2, p) + 0.8
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.2
+
+cg_cd_result_3 = cg_cd(X, b, lambda)
+cd_r_3 = cg_cd_r(X, b, lambda)
+cg_cd_elastic_3 = cg_cd_alpha(X, b, lambda)
+
+print(cg_cd_result_3)
+print(cd_r_3)
+print(cg_cd_elastic_3)
+```
+
+```{r}
+obj_res_5 = obj(S, b, cg_cd_result_3, lambda)
+obj_res_6 = obj(S, b, cd_r_3$u, lambda)
+obj_res_elastic_3 = obj(S, b, cg_cd_elastic_3, lambda)
+
+print(obj_res_5)
+print(obj_res_6)
+print(obj_res_elastic_3)
+```
+
+## Test 2
+```{r}
+set.seed(2023)
+n <- 100
+p <- 5
+b <- rep(0, p)
+b[1] <- 1
+Sigma <- diag(0.2, p) + 0.8
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
+S <- t(X) %*% X / n + diag(0.01, p)
+lambda <- 0.4
+
+cg_cd_result_4 = cg_cd(X, b, lambda)
+cd_r_4 = cg_cd_r(X, b, lambda)
+cg_cd_elastic_4 = cg_cd_alpha(X, b, lambda)
+
+print(cg_cd_result_4)
+print(cd_r_4)
+print(cg_cd_elastic_4)
+```
+
+```{r}
+obj_res_7 = obj(S, b, cg_cd_result_4, lambda)
+obj_res_8 = obj(S, b, cd_r_4$u, lambda)
+obj_res_elastic_4 = obj(S, b, cg_cd_elastic_4, lambda)
+
+print(obj_res_7)
+print(obj_res_8)
+print(obj_res_7)
+```
