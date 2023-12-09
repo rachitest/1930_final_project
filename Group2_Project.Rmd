@@ -19,8 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(MASS)
 library(Rcpp)
 library(RcppArmadillo)
+library(glmnet)
 
-sourceCpp("/Users/cschaef3/Documents/GitHub/1930_final_project/coordinate_descent_algo_alt.cpp")
+sourceCpp("coordinate_descent_algo_alt.cpp")
 sourceCpp("admm_cpp_v3.cpp")
 ```
 
@@ -146,12 +147,11 @@ ynew <-  X%*%b + rnorm(n)
 
 
 #lambda value
-lambda <- 0.2
+lambda <- 0.01
 
 cd_time <- system.time( cd_fit <- cg_cd(X, b, lambda)) 
 admm_time <- system.time( admm_fit <- cg_admm(X, b, lambda))
 
-library(glmnet)
 re <- system.time(fit <- glmnet(X, y, lambda = 1, standardize  = F, intercept = F))
 
 t = list(cd=cd_time, admm=admm_time, glmnet=re)
@@ -164,9 +164,43 @@ print(t)
 
 ```{r}
 re.glmnet <- as.numeric(coef(fit))[-1]
-colnames(cd_fit) = c("CD")
-colnames(admm_fit) = c("ADMM")
+results <- cbind( re.glmnet[301:305], cd_fit[301:305], admm_fit[301:305])
 
-cbind( re.glmnet[301:305], cd_fit[301:305], admm_fit[301:305])
+colnames(results) = c("glmnet","cd","admm")
+
+print(results)
+```
+
+***
+# Bonus
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+#lambda value
+lambda <- 0.01
+
+#ADMM algorithm
+elastic_cd <- cg_cd_alpha(X, b, lambda, alpha=.05)
+elastic_admm <- cg_admm_alpha(X, b, lambda, alpha=.05)
+
+print(list(cd=elastic_cd,admm=elastic_admm))
 ```
 

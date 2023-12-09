@@ -17,8 +17,8 @@ library(Rcpp)
 library(RcppArmadillo)
 
 source("project_functions.R")
-sourceCpp("coordinate_descent_algo.cpp")
-sourceCpp("admm_cpp.cpp")
+sourceCpp("coordinate_descent_algo_alt.cpp")
+sourceCpp("admm_cpp_v3.cpp")
 ```
 
 
@@ -47,10 +47,10 @@ b <- c(1, rep(0, p - 1))
 lambda_value <- 0.01
 
 #ADMM  and CD algorithms and compare their results
-cd_r <- cg_cd(X, b, lambda_value)
-cd_cpp <- cg_cd_cpp(X, b, lambda_value)
-admm_r <- cg_admm(X, b, lambda_value)
-admm_cpp <- cg_admm_cpp(X, b, lambda_value, 1e-4, 1000)
+cd_r <- cg_cd_r(X, b, lambda_value)
+cd_cpp <- cg_cd(X, b, lambda_value)
+admm_r <- admm_r(X, b, lambda_value,rho=rho)
+admm_cpp <- cg_admm(X, b, lambda_value)
 ```
 
 
@@ -65,7 +65,7 @@ print(cd_cpp)
 ***
 # ADMM
 ```{r}
-print(admm_r)
+print(admm_r$u)
 print(admm_cpp)
 ```
 
