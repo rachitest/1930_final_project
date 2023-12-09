@@ -25,7 +25,7 @@ double soft_thresholding(double x, double a){
   //' @param b A vector of responses of length p.
   //' @param lambda A numeric value for regularization.
   //' @param tol A numeric value for tolerance.
-  //' @param maxiter An integer for maximum number of iterations.
+  //' @param maxit An integer for maximum number of iterations.
   //' @return A vector of coefficients of length p.
   //'
   //' @examples
@@ -41,7 +41,7 @@ double soft_thresholding(double x, double a){
   //' print(cg_cd_result)
   //' }
 // [[Rcpp::export]]
-arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxiter=1000){
+arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxit=1000){
   int p = X.n_cols;
   arma::vec u(p);
   u.zeros();
@@ -49,7 +49,7 @@ arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int ma
   arma::mat A = (1.0/X.n_rows)*X.t()*X + 0.01*arma::eye(p,p);
   arma::vec u_old = u;
   
-  for (int j = 0; j < maxiter; j++){
+  for (int j = 0; j < maxit; j++){
     for (int k = 0; k < p; k++){
       double r_k = b[k] - dot(A.row(k), u) + A(k,k)*u[k];
       double z_k = soft_thresholding(r_k, lambda) / A(k,k);
@@ -70,7 +70,7 @@ arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int ma
  //' @param lambda A numeric value for regularization.
  //' @param alpha A numeric value for elastic net mixing parameter.
  //' @param tol A numeric value for tolerance.
- //' @param maxiter An integer for maximum number of iterations.
+ //' @param maxit An integer for maximum number of iterations.
  //' @return A vector of coefficients of length p.
  //'
  //' @examples
@@ -86,7 +86,7 @@ arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int ma
  //' print(cg_cd_result)
  //' }
 // [[Rcpp::export]]
-arma::vec cg_cd_alpha(arma::mat X, arma::vec b, double lambda, double alpha=0, double tol=1e-4, int maxiter=1000){
+arma::vec cg_cd_alpha(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxit=1000, double alpha=0){
   int p = X.n_cols;
   arma::vec u(p);
   u.zeros();
@@ -94,7 +94,7 @@ arma::vec cg_cd_alpha(arma::mat X, arma::vec b, double lambda, double alpha=0, d
   arma::mat A = (1.0/X.n_rows)*X.t()*X + 0.01*arma::eye(p,p);
   arma::vec u_old = u;
   
-  for (int j = 0; j < maxiter; j++){
+  for (int j = 0; j < maxit; j++){
     for (int k = 0; k < p; k++){
       double r_k = b[k] - dot(A.row(k), u) + A(k,k)*u[k];
       double z_k = soft_thresholding(r_k, lambda*(1-alpha)) / (A(k,k) + lambda*alpha);
