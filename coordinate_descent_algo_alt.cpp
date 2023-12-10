@@ -14,6 +14,8 @@ using namespace Rcpp;
 //' soft_thresholding(1.5, 1)
 //' soft_thresholding(-1.5, 1)
 //' soft_thresholding(0.5, 1)
+//' @export
+// [[Rcpp::export]]
  double soft_thresholding(double x, double a){
    if (x > a) return (x - a);
    if (x < -a) return (x + a);
@@ -31,7 +33,6 @@ using namespace Rcpp;
 //' @return A vector of coefficients of length p.
 //'
 //' @examples
-//' \donotrun {
 //' set.seed(2023)
 //' n <- 100
 //' p <- 5
@@ -41,7 +42,6 @@ using namespace Rcpp;
 //' lambda <- 0.2
 //' cg_cd_result = cg_cd(X, b, lambda)
 //' print(cg_cd_result)
-//' }
 //' @export
 // [[Rcpp::export]]
  arma::vec cg_cd(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxit=1000){
@@ -78,7 +78,6 @@ using namespace Rcpp;
 //' @return A vector of coefficients of length p.
 //'
 //' @examples
-//' \donotrun {
 //' set.seed(2023)
 //' n <- 100
 //' p <- 5
@@ -88,7 +87,6 @@ using namespace Rcpp;
 //' lambda <- 0.2
 //' cg_cd_result = cg_cd_alpha(X, b, lambda)
 //' print(cg_cd_result)
-//' }
 //' @export
 // [[Rcpp::export]]
  arma::vec cg_cd_alpha(arma::mat X, arma::vec b, double lambda, double tol=1e-4, int maxit=1000, double alpha=0){

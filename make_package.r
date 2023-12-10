@@ -53,6 +53,23 @@ file_copy(path(get_base_path, "UTH", "Biostats", "Fall 2023", "1930_final_projec
           path(path_join(path_split(path_wd())[[1]][-c(7:9)]), "UTH", "Biostats", "Fall 2023", "mycglassoG2", "src", "admm_cpp_v3", ext = "cpp"))
 }
 
+# Add mycglassoG2.R file to the /R directory
+if (grepl("UTH/Biostats/Fall 2023", get_base_path)) {
+  
+  dir_create(path(path_join(path_split(path_wd())[[1]][-c(7:9)]), "mycglassoG2", "/R"))
+  
+  file_copy(path(get_base_path, "1930_final_project", "mycglassoG2", ext = "R"), 
+            path(path_join(path_split(path_wd())[[1]][-c(7:9)]), "mycglassoG2", "R", "mycglassoG2", ext = "R"))
+  
+} else {
+  
+  dir_create(path(path_join(path_split(path_wd())[[1]][-c(7:9)]), "UTH", "Biostats", "Fall 2023", "mycglassoG2", "/R"))
+  
+  file_copy(path(get_base_path, "UTH", "Biostats", "Fall 2023", "1930_final_project", "mycglassoG2", ext = "R"), 
+            path(path_join(path_split(path_wd())[[1]][-c(7:9)]), "UTH", "Biostats", "Fall 2023", "mycglassoG2", "R", "mycglassoG2", ext = "R"))
+  
+}
+
 .rs.restartR()
 
 setwd(pkg_path)
@@ -60,7 +77,7 @@ setwd(pkg_path)
 use_rcpp_armadillo("coordinate_descent_algo_alt")
 use_rcpp_armadillo("admm_cpp_v3")
 
-devtools::document(pkg_path)
+devtools::document(pkg_path, roclets = c('rd', 'collate', 'namespace'))
 
 check(pkg_path, args = "--as-cran")
 

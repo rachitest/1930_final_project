@@ -7,11 +7,12 @@ editor: visual
 # Load cpp
 
 ```{r}
-library(Rcpp)
-library(RcppArmadillo)
+#library(Rcpp)
+#library(RcppArmadillo)
+library(mycglassoG2)
 
 #source("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/project_functions.R")
-sourceCpp("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/coordinate_descent_algo_alt.cpp")
+#sourceCpp("/home/rstudio/UTH/Biostats/Fall 2023/1930_final_project/coordinate_descent_algo_alt.cpp")
 ```
 
 # Define R functions

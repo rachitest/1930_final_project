@@ -14,6 +14,8 @@ using namespace Rcpp;
 //' soft_threshold(1.5, 1)
 //' soft_threshold(-1.5, 1)
 //' soft_threshold(0.5, 1)
+//' @export
+// [[Rcpp::export]]
  arma::colvec soft_threshold(arma::colvec x, double lambda)
  {
    int p = x.n_rows;
@@ -31,7 +33,6 @@ using namespace Rcpp;
 //' @return A vector of coefficients of length p.
 //'
 //' @examples
-//' \donotrun {
 //' set.seed(2023)
 //' n <- 100
 //' p <- 5
@@ -41,7 +42,6 @@ using namespace Rcpp;
 //' lambda <- 0.2
 //' cg_admm_result = cg_admm(X, b, lambda, tol=1e-4, maxit=1000)
 //' print(cg_admm_result)
-//' }
 //' @export
 // [[Rcpp::export]]
  arma::colvec cg_admm(arma::mat X, arma::colvec b, double lambda, double tol=1e-4, int maxit=1000) {
@@ -93,7 +93,6 @@ using namespace Rcpp;
 //' @return A vector of coefficients of length p.
 //'
 //' @examples
-//' \donotrun {
 //' set.seed(2023)
 //' n <- 100
 //' p <- 5
@@ -103,7 +102,6 @@ using namespace Rcpp;
 //' lambda <- 0.2
 //' cg_admm_result = cg_admm_alpha(X, b, lambda)
 //' print(cg_admm_result)
-//' }
 //' @export
 // [[Rcpp::export]]
  arma::colvec cg_admm_alpha(arma::mat X, arma::colvec b, double lambda, double tol=1e-4, int maxit=1000, double alpha=0) {
