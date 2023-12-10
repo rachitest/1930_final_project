@@ -64,7 +64,7 @@ print(cd)
 #### Vary $\lambda$ from 0.01 to 0.5  
 
 ```{r}
-lambda_vals <- seq(.01, .5, by=.01)
+lambda_vals <- seq(1e-6, .5, by=1e-4)
 cd_result <- vector("list", length = length(lambda_vals))
 
 for (i in 1:length(lambda_vals)){
@@ -75,7 +75,7 @@ for (i in 1:length(lambda_vals)){
 df <- data.frame(matrix(unlist(cd_result), ncol=length(lambda_vals), byrow=F))
 colnames(df) <- lambda_vals
 
-print(df[,c(1,10,20,30,40,50)])
+print(df[,c(1,1000,2000,3000,4000,5000)])
 ```
 
 ***
@@ -117,7 +117,7 @@ print(admm)
 #### Vary $\lambda$ from 0.01 to 0.5  
 
 ```{r}
-lambda_vals <- seq(.01, .5, by=.01)
+lambda_vals <- seq(1e-6, .5, by=1e-4)
 admm_result <- vector("list", length = length(lambda_vals))
 
 for (i in 1:length(lambda_vals)){
@@ -128,7 +128,7 @@ for (i in 1:length(lambda_vals)){
 df <- data.frame(matrix(unlist(admm_result), ncol=length(lambda_vals), byrow=F))
 colnames(df) <- lambda_vals
 
-print(df[,c(1,10,20,30,40,50)])
+print(df[,c(1,1000,2000,3000,4000,5000)])
 ```
 
 ***
@@ -146,7 +146,7 @@ ynew <-  X%*%b + rnorm(n)
 
 
 #lambda value
-lambda <- 0.01
+lambda <- .01
 
 cd_time <- system.time( cd_fit <- cg_cd(X, b, lambda)) 
 admm_time <- system.time( admm_fit <- cg_admm(X, b, lambda))
@@ -169,6 +169,8 @@ colnames(results) = c("glmnet","cd","admm")
 
 print(results)
 ```
+
+
 ```{r}
 lasso_obj <- function(X, y, beta, lambda) {
     (1/2)*(1/length(y))*norm(y - X%*%beta,"F")^2 + lambda*sum(abs(beta))
