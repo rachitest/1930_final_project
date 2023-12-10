@@ -1,0 +1,205 @@
+---
+title: "PH1930 Final Project"
+author: "Group 2: Yu Bin Chen, Rachit Sabharwal, Caroline Schaefer, Pagna Sok"
+date: "2023-12-10"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+This report contains results of minimizing the equation using the coordinate descent (CD) and alternating direction method of multipliers (ADMM). Functions are run using C++ code and implemented with the R packages Rcpp and RcppArmadillo: 
+
+\begin{align*}
+\frac{1}{2}u^TAu-ub^T+\lambda ||u||_1\\
+\end{align*}  
+
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("mycglassoG2_0.1.0.tar.gz")
+
+library(mycglassoG2)
+library(MASS)
+library(glmnet)
+
+```
+
+
+***
+# CD Algorithm
+## Question 3
+#### n = 200, p = 10
+
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+#lambda value
+lambda <- 0.01
+
+# run CD algorithm
+cd <- cg_cd(X, b, lambda, tol=1e-4, maxit = 1000)
+
+print(cd)
+```
+
+## Question 4
+#### Vary $\lambda$ from 0.01 to 0.5  
+
+```{r}
+lambda_vals <- seq(.01, .5, by=.01)
+cd_result <- vector("list", length = length(lambda_vals))
+
+for (i in 1:length(lambda_vals)){
+  cd_result[[i]] <- cg_cd(X, b, lambda_vals[i])
+  #print(lambda)
+}
+
+df <- data.frame(matrix(unlist(cd_result), ncol=length(lambda_vals), byrow=F))
+colnames(df) <- lambda_vals
+
+print(df[,c(1,10,20,30,40,50)])
+```
+
+***
+# ADMM Algorithm
+## Question 3
+#### n = 200, p = 10
+
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+#lambda value
+lambda <- 0.01
+
+#ADMM algorithm
+admm <- cg_admm(X, b, lambda)
+
+print(admm)
+```
+
+## Question 4
+#### Vary $\lambda$ from 0.01 to 0.5  
+
+```{r}
+lambda_vals <- seq(.01, .5, by=.01)
+admm_result <- vector("list", length = length(lambda_vals))
+
+for (i in 1:length(lambda_vals)){
+  admm_result[[i]] <- cg_admm(X, b, lambda_vals[i])
+  #print(lambda)
+}
+
+df <- data.frame(matrix(unlist(admm_result), ncol=length(lambda_vals), byrow=F))
+colnames(df) <- lambda_vals
+
+print(df[,c(1,10,20,30,40,50)])
+```
+
+***
+# Comparison: CD and ADMM  
+#### Computational Speed
+```{r}
+set.seed(100)
+n <- 50
+p <- 400
+X <- matrix(rnorm(n*p), n, p)
+b <- rep(0, 400)
+b[301:305] <- c(5:1)*2
+y <-  X%*%b + rnorm(n)
+ynew <-  X%*%b + rnorm(n)  
+
+
+#lambda value
+lambda <- 0.01
+
+cd_time <- system.time( cd_fit <- cg_cd(X, b, lambda)) 
+admm_time <- system.time( admm_fit <- cg_admm(X, b, lambda))
+
+re <- system.time(fit <- glmnet(X, y, lambda = 1, standardize  = F, intercept = F))
+
+t = list(cd=cd_time, admm=admm_time, glmnet=re)
+print(t)
+```
+
+  
+  
+#### Accuracy  
+
+```{r}
+re.glmnet <- as.numeric(coef(fit))[-1]
+results <- cbind( re.glmnet[301:305], cd_fit[301:305], admm_fit[301:305])
+
+colnames(results) = c("glmnet","cd","admm")
+
+print(results)
+```
+
+***
+# Bonus
+```{r}
+#set parameters for simulation
+rho <- 0.9
+n <- 200
+p <- 10
+
+#create covariance matrix
+cov_matrix <- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] <- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X <- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b <- c(1, rep(0, p - 1))
+
+#lambda value
+lambda <- 0.01
+
+#ADMM algorithm
+elastic_cd <- cg_cd_alpha(X, b, lambda, alpha=.05)
+elastic_admm <- cg_admm_alpha(X, b, lambda, alpha=.05)
+
+print(list(cd=elastic_cd,admm=elastic_admm))
+```
+
