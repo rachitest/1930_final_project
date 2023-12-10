@@ -60,7 +60,7 @@ setwd(pkg_path)
 use_rcpp_armadillo("coordinate_descent_algo_alt")
 use_rcpp_armadillo("admm_cpp_v3")
 
-document(pkg_path)
+devtools::document(pkg_path)
 
 check(pkg_path, args = "--as-cran")
 
