@@ -1,3 +1,12 @@
+---
+title: "test_cases"
+author: "Caroline Schaefer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
 library(MASS)
 library(Rcpp)
 library(RcppArmadillo)
@@ -10,9 +19,12 @@ obj <- function(S, b, u, lambda = 0.2) {
   ucol <- matrix(u, ncol = 1)
   0.5*t(ucol) %*% S %*% ucol - t(ucol) %*% matrix(b, ncol = 1) + lambda * sum(abs(ucol))
 }
+```
 
-###### Scenario 1
-# Test 1
+# Scenario 1
+#### Test 1
+```{r}
+
 set.seed(2023)
 n <- 100
 p <- 5
@@ -28,9 +40,11 @@ cd_elastic1 <- cg_cd_alpha(X, b, lambda, alpha=.05)
 admm_elastic1 <- cg_admm_alpha(X, b, lambda, alpha=.05)
 
 print(data.frame(cd_cpp=cd1,admm_cpp=admm1,cd_elastic=cd_elastic1, admm_elastic=admm_elastic1))
+```
 
 
-# Test 2
+#### Test 2
+```{r}
 set.seed(2023)
 n <- 100
 p <- 5
@@ -46,9 +60,13 @@ cd_elastic2 <- cg_cd_alpha(X, b, lambda, alpha=.05)
 admm_elastic2 <- cg_admm_alpha(X, b, lambda, alpha=.05)
 
 print(data.frame(cd_cpp=cd2,admm_cpp=admm2,cd_elastic=cd_elastic2, admm_elastic=admm_elastic2))
+```
 
-###### Scenario 2
-# Test 1
+# Scenario 2
+#### Test 1
+```{r}
+
+
 set.seed(2023)
 n <- 100
 p <- 5
@@ -66,7 +84,12 @@ admm_elastic3 <- cg_admm_alpha(X, b, lambda, alpha=.05)
 
 print(data.frame(cd_cpp=cd3,admm_cpp=admm3,cd_elastic=cd_elastic3, admm_elastic=admm_elastic3))
 
-# Test 2
+```
+
+
+#### Test 2
+```{r}
+
 set.seed(2023)
 n <- 100
 p <- 5
@@ -83,3 +106,5 @@ cd_elastic4 <- cg_cd_alpha(X, b, lambda, alpha=.05)
 admm_elastic4 <- cg_admm_alpha(X, b, lambda, alpha=.05)
 
 print(data.frame(cd_cpp=cd4,admm_cpp=admm4,cd_elastic=cd_elastic4, admm_elastic=admm_elastic4))
+
+```
