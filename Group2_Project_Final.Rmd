@@ -161,13 +161,21 @@ print(t)
   
 #### Accuracy  
 
-```{r}
+```{r, include=FALSE}
 re.glmnet <- as.numeric(coef(fit))[-1]
 results <- cbind( re.glmnet[301:305], cd_fit[301:305], admm_fit[301:305])
 
 colnames(results) = c("glmnet","cd","admm")
 
 print(results)
+```
+```{r}
+lasso_obj <- function(X, y, beta, lambda) {
+    (1/2)*(1/length(y))*norm(y - X%*%beta,"F")^2 + lambda*sum(abs(beta))
+}
+
+beta_glmnet <- as.numeric(coef(fit)[-1] )
+print(data.frame(cd_diff=max( abs( beta_glmnet - cd_fit )), admm_diff=max( abs( beta_glmnet - admm_fit )))) 
 ```
 
 ***
@@ -200,6 +208,6 @@ lambda <- 0.01
 elastic_cd <- cg_cd_alpha(X, b, lambda, alpha=.05)
 elastic_admm <- cg_admm_alpha(X, b, lambda, alpha=.05)
 
-print(list(cd=elastic_cd,admm=elastic_admm))
+print(data.frame(cd=elastic_cd,admm=elastic_admm))
 ```
 

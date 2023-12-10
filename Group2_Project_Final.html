@@ -9,11 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Caroline Schaefer" />
+<meta name="author" content="Group 2: Yu Bin Chen, Rachit Sabharwal, Caroline Schaefer, Pagna Sok" />
 
-<meta name="date" content="2023-12-09" />
+<meta name="date" content="2023-12-10" />
 
-<title>test_cases</title>
+<title>PH1930 Final Project</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,126 +350,287 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">test_cases</h1>
-<h4 class="author">Caroline Schaefer</h4>
-<h4 class="date">2023-12-09</h4>
+<h1 class="title toc-ignore">PH1930 Final Project</h1>
+<h4 class="author">Group 2: Yu Bin Chen, Rachit Sabharwal, Caroline
+Schaefer, Pagna Sok</h4>
+<h4 class="date">2023-12-10</h4>
 
 </div>
 
 
-<pre class="r"><code>knitr::opts_chunk$set(echo = T)
+<p>This report contains results of minimizing the equation using the
+coordinate descent (CD) and alternating direction method of multipliers
+(ADMM). Functions are run using C++ code and implemented with the R
+packages Rcpp and RcppArmadillo:</p>
+<p><span class="math display">\[\begin{align*}
+\frac{1}{2}u^TAu-ub^T+\lambda ||u||_1\\
+\end{align*}\]</span></p>
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
 install.packages(&quot;mycglassoG2_0.1.0.tar.gz&quot;)</code></pre>
 <pre><code>## inferring &#39;repos = NULL&#39; from &#39;pkgs&#39;</code></pre>
 <pre class="r"><code>library(mycglassoG2)
 library(MASS)
+library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## Loaded glmnet 4.1-8</code></pre>
+<hr />
+<div id="cd-algorithm" class="section level1">
+<h1>CD Algorithm</h1>
+<div id="question-3" class="section level2">
+<h2>Question 3</h2>
+<div id="n-200-p-10" class="section level4">
+<h4>n = 200, p = 10</h4>
+<pre class="r"><code>#set parameters for simulation
+rho &lt;- 0.9
+n &lt;- 200
+p &lt;- 10
 
-obj &lt;- function(S, b, u, lambda = 0.2) {
-  ucol &lt;- matrix(u, ncol = 1)
-  0.5*t(ucol) %*% S %*% ucol - t(ucol) %*% matrix(b, ncol = 1) + lambda * sum(abs(ucol))
-}</code></pre>
-<div id="scenario-1" class="section level1">
-<h1>Scenario 1</h1>
-<div id="test-1" class="section level4">
-<h4>Test 1</h4>
-<pre class="r"><code>set.seed(2023)
-n &lt;- 100
-p &lt;- 5
-b &lt;- rep(0, p)
-b[1] &lt;- 1
-X &lt;- matrix(rnorm(n * p), nrow = n, ncol = p) 
-S &lt;- t(X) %*% X / n + diag(0.01, p)
-lambda &lt;- 0.2
+#create covariance matrix
+cov_matrix &lt;- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] &lt;- rho^abs(i - j)
+  }
+}
 
-cd1 &lt;- cg_cd(X, b, lambda)
-admm1 &lt;- cg_admm(X, b, lambda)
-cd_elastic1 &lt;- cg_cd_alpha(X, b, lambda)
-admm_elastic1 &lt;- cg_admm_alpha(X, b, lambda)
+#simulate data
+set.seed(100)  # for reproducibility
+X &lt;- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
 
-print(data.frame(cd_cpp=cd1,admm_cpp=admm1,cd_elastic=cd_elastic1, admm_elastic=admm_elastic1))</code></pre>
-<pre><code>##      cd_cpp      admm_cpp cd_elastic admm_elastic
-## 1 0.8074514  7.981209e-01  0.8074514   0.76653824
-## 2 0.0000000  5.863307e-05  0.0000000  -0.24262733
-## 3 0.0000000  2.525517e-05  0.0000000  -0.19556937
-## 4 0.0000000 -7.287821e-05  0.0000000  -0.13136562
-## 5 0.0000000 -2.427755e-05  0.0000000  -0.07989049</code></pre>
-</div>
-<div id="test-2" class="section level4">
-<h4>Test 2</h4>
-<pre class="r"><code>set.seed(2023)
-n &lt;- 100
-p &lt;- 5
-b &lt;- rep(0, p)
-b[1] &lt;- 1
-X &lt;- matrix(rnorm(n * p), nrow = n, ncol = p) 
-S &lt;- t(X) %*% X / n + diag(0.01, p)
-lambda &lt;- 0.4
+#set b
+b &lt;- c(1, rep(0, p - 1))
 
-cd2 &lt;- cg_cd(X, b, lambda)
-admm2 &lt;- cg_admm(X, b, lambda)
-cd_elastic2 &lt;- cg_cd_alpha(X, b, lambda)
-admm_elastic2 &lt;- cg_admm_alpha(X, b, lambda)
+#lambda value
+lambda &lt;- 0.01
 
-print(data.frame(cd_cpp=cd2,admm_cpp=admm2,cd_elastic=cd_elastic2, admm_elastic=admm_elastic2))</code></pre>
-<pre><code>##      cd_cpp      admm_cpp cd_elastic admm_elastic
-## 1 0.6055886  5.962592e-01  0.6055886    0.4499260
-## 2 0.0000000  5.969077e-05  0.0000000   -0.5310063
-## 3 0.0000000  2.731679e-05  0.0000000   -0.4304740
-## 4 0.0000000 -7.290267e-05  0.0000000   -0.4589264
-## 5 0.0000000 -1.792732e-05  0.0000000   -0.3784097</code></pre>
+# run CD algorithm
+cd &lt;- cg_cd(X, b, lambda, tol=1e-4, maxit = 1000)
+
+print(cd)</code></pre>
+<pre><code>##             [,1]
+##  [1,]  4.4128889
+##  [2,] -3.5561002
+##  [3,]  0.0000000
+##  [4,] -0.2509670
+##  [5,] -0.1204857
+##  [6,] -0.4887060
+##  [7,]  0.2047628
+##  [8,]  0.0000000
+##  [9,]  0.1084479
+## [10,] -0.0779192</code></pre>
 </div>
 </div>
-<div id="scenario-2" class="section level1">
-<h1>Scenario 2</h1>
-<div id="test-1-1" class="section level4">
-<h4>Test 1</h4>
-<pre class="r"><code>set.seed(2023)
-n &lt;- 100
-p &lt;- 5
-b &lt;- rep(0, p)
-b[1] &lt;- 1
-Sigma &lt;- diag(0.2, p) + 0.8
-X &lt;- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
-S &lt;- t(X) %*% X / n + diag(0.01, p)
-lambda &lt;- 0.2
+<div id="question-4" class="section level2">
+<h2>Question 4</h2>
+<div id="vary-lambda-from-0.01-to-0.5" class="section level4">
+<h4>Vary <span class="math inline">\(\lambda\)</span> from 0.01 to
+0.5</h4>
+<pre class="r"><code>lambda_vals &lt;- seq(.01, .5, by=.01)
+cd_result &lt;- vector(&quot;list&quot;, length = length(lambda_vals))
 
-cd3 &lt;- cg_cd(X, b, lambda)
-admm3 &lt;- cg_admm(X, b, lambda)
-cd_elastic3 &lt;- cg_cd_alpha(X, b, lambda)
-admm_elastic3 &lt;- cg_admm_alpha(X, b, lambda)
+for (i in 1:length(lambda_vals)){
+  cd_result[[i]] &lt;- cg_cd(X, b, lambda_vals[i])
+  #print(lambda)
+}
 
-print(data.frame(cd_cpp=cd3,admm_cpp=admm3,cd_elastic=cd_elastic3, admm_elastic=admm_elastic3))</code></pre>
-<pre><code>##       cd_cpp     admm_cpp cd_elastic admm_elastic
-## 1  2.5030364 7.979913e-01  2.5030364    4.1876462
-## 2 -0.7017098 5.255711e-05 -0.7017098   -1.2025541
-## 3 -0.5296363 5.706293e-05 -0.5296363   -0.9116624
-## 4 -0.6886519 3.913583e-05 -0.6886519   -1.4854178
-## 5 -0.3595356 4.754444e-05 -0.3595356   -0.9957172</code></pre>
+df &lt;- data.frame(matrix(unlist(cd_result), ncol=length(lambda_vals), byrow=F))
+colnames(df) &lt;- lambda_vals
+
+print(df[,c(1,10,20,30,40,50)])</code></pre>
+<pre><code>##          0.01          0.1          0.2         0.3        0.4      0.5
+## 1   4.4128889  3.605023228  2.727319983  1.85862524  1.0228214 0.494997
+## 2  -3.5561002 -2.850591652 -2.074504080 -1.30549359 -0.5049966 0.000000
+## 3   0.0000000 -0.009224264 -0.054679992 -0.04720156  0.0000000 0.000000
+## 4  -0.2509670 -0.142404364 -0.009944040  0.00000000  0.0000000 0.000000
+## 5  -0.1204857 -0.175015899 -0.183544396 -0.03002195  0.0000000 0.000000
+## 6  -0.4887060 -0.135585049 -0.006666207  0.00000000  0.0000000 0.000000
+## 7   0.2047628  0.000000000  0.000000000  0.00000000  0.0000000 0.000000
+## 8   0.0000000  0.000000000  0.000000000  0.00000000  0.0000000 0.000000
+## 9   0.1084479  0.000000000  0.000000000  0.00000000  0.0000000 0.000000
+## 10 -0.0779192  0.000000000  0.000000000  0.00000000  0.0000000 0.000000</code></pre>
+<hr />
 </div>
-<div id="test-2-1" class="section level4">
-<h4>Test 2</h4>
-<pre class="r"><code>set.seed(2023)
-n &lt;- 100
-p &lt;- 5
-b &lt;- rep(0, p)
-b[1] &lt;- 1
-Sigma &lt;- diag(0.2, p) + 0.8
-X &lt;- matrix(rnorm(n * p), nrow = n, ncol = p)%*% chol(Sigma)
-S &lt;- t(X) %*% X / n + diag(0.01, p)
-lambda &lt;- 0.4
-
-cd4 &lt;- cg_cd(X, b, lambda)
-admm4 &lt;- cg_admm(X, b, lambda)
-cd_elastic4 &lt;- cg_cd_alpha(X, b, lambda)
-admm_elastic4 &lt;- cg_admm_alpha(X, b, lambda)
-
-print(data.frame(cd_cpp=cd4,admm_cpp=admm4,cd_elastic=cd_elastic4, admm_elastic=admm_elastic4))</code></pre>
-<pre><code>##       cd_cpp     admm_cpp cd_elastic admm_elastic
-## 1  0.8293542 5.961275e-01  0.8293542    4.2096079
-## 2 -0.1641076 5.288115e-05 -0.1641076   -1.2237561
-## 3 -0.1201707 5.741475e-05 -0.1201707   -0.9250505
-## 4  0.0000000 3.937712e-05  0.0000000   -1.6230022
-## 5  0.0000000 4.783757e-05  0.0000000   -1.1434010</code></pre>
 </div>
+</div>
+<div id="admm-algorithm" class="section level1">
+<h1>ADMM Algorithm</h1>
+<div id="question-3-1" class="section level2">
+<h2>Question 3</h2>
+<div id="n-200-p-10-1" class="section level4">
+<h4>n = 200, p = 10</h4>
+<pre class="r"><code>#set parameters for simulation
+rho &lt;- 0.9
+n &lt;- 200
+p &lt;- 10
+
+#create covariance matrix
+cov_matrix &lt;- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] &lt;- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X &lt;- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b &lt;- c(1, rep(0, p - 1))
+
+#lambda value
+lambda &lt;- 0.01
+
+#ADMM algorithm
+admm &lt;- cg_admm(X, b, lambda)
+
+print(admm)</code></pre>
+<pre><code>##               [,1]
+##  [1,] 9.898769e-01
+##  [2,] 1.191925e-05
+##  [3,] 2.697879e-05
+##  [4,] 3.462231e-05
+##  [5,] 4.938078e-05
+##  [6,] 6.290130e-05
+##  [7,] 6.731158e-05
+##  [8,] 7.225821e-05
+##  [9,] 7.540668e-05
+## [10,] 6.926495e-05</code></pre>
+</div>
+</div>
+<div id="question-4-1" class="section level2">
+<h2>Question 4</h2>
+<div id="vary-lambda-from-0.01-to-0.5-1" class="section level4">
+<h4>Vary <span class="math inline">\(\lambda\)</span> from 0.01 to
+0.5</h4>
+<pre class="r"><code>lambda_vals &lt;- seq(.01, .5, by=.01)
+admm_result &lt;- vector(&quot;list&quot;, length = length(lambda_vals))
+
+for (i in 1:length(lambda_vals)){
+  admm_result[[i]] &lt;- cg_admm(X, b, lambda_vals[i])
+  #print(lambda)
+}
+
+df &lt;- data.frame(matrix(unlist(admm_result), ncol=length(lambda_vals), byrow=F))
+colnames(df) &lt;- lambda_vals
+
+print(df[,c(1,10,20,30,40,50)])</code></pre>
+<pre><code>##            0.01          0.1          0.2          0.3          0.4
+## 1  9.898769e-01 0.8987228340 0.7973186724 0.6956912699 0.5936680516
+## 2  1.191925e-05 0.0001216763 0.0002501735 0.0003906790 0.0005525402
+## 3  2.697879e-05 0.0002754019 0.0005662188 0.0008841621 0.0012503064
+## 4  3.462231e-05 0.0003534239 0.0007266184 0.0011345985 0.0016043697
+## 5  4.938078e-05 0.0005040669 0.0010362971 0.0016180637 0.0022877640
+## 6  6.290130e-05 0.0006420570 0.0013199144 0.0020607051 0.0029130845
+## 7  6.731158e-05 0.0006870595 0.0014123830 0.0022049493 0.0031166655
+## 8  7.225821e-05 0.0007375261 0.0015160527 0.0023665949 0.0033446148
+## 9  7.540668e-05 0.0007696506 0.0015820529 0.0024695299 0.0034898389
+## 10 6.926495e-05 0.0007069549 0.0014531512 0.0022682445 0.0032051906
+##             0.5
+## 1  0.4909567949
+## 2  0.0007517697
+## 3  0.0017006370
+## 4  0.0021819872
+## 5  0.0031107134
+## 6  0.0039594551
+## 7  0.0042352162
+## 8  0.0045434314
+## 9  0.0047399871
+## 10 0.0043527931</code></pre>
+<hr />
+</div>
+</div>
+</div>
+<div id="comparison-cd-and-admm" class="section level1">
+<h1>Comparison: CD and ADMM</h1>
+<div id="computational-speed" class="section level4">
+<h4>Computational Speed</h4>
+<pre class="r"><code>set.seed(100)
+n &lt;- 50
+p &lt;- 400
+X &lt;- matrix(rnorm(n*p), n, p)
+b &lt;- rep(0, 400)
+b[301:305] &lt;- c(5:1)*2
+y &lt;-  X%*%b + rnorm(n)
+ynew &lt;-  X%*%b + rnorm(n)  
+
+
+#lambda value
+lambda &lt;- 0.01
+
+cd_time &lt;- system.time( cd_fit &lt;- cg_cd(X, b, lambda)) 
+admm_time &lt;- system.time( admm_fit &lt;- cg_admm(X, b, lambda))
+
+re &lt;- system.time(fit &lt;- glmnet(X, y, lambda = 1, standardize  = F, intercept = F))
+
+t = list(cd=cd_time, admm=admm_time, glmnet=re)
+print(t)</code></pre>
+<pre><code>## $cd
+##    user  system elapsed 
+##   0.185   0.001   0.186 
+## 
+## $admm
+##    user  system elapsed 
+##  18.656   0.072  18.790 
+## 
+## $glmnet
+##    user  system elapsed 
+##   0.013   0.000   0.013</code></pre>
+</div>
+<div id="accuracy" class="section level4">
+<h4>Accuracy</h4>
+<pre class="r"><code>lasso_obj &lt;- function(X, y, beta, lambda) {
+    (1/2)*(1/length(y))*norm(y - X%*%beta,&quot;F&quot;)^2 + lambda*sum(abs(beta))
+}
+
+beta_glmnet &lt;- as.numeric(coef(fit)[-1] )
+print(data.frame(cd_diff=max( abs( beta_glmnet - cd_fit )), admm_diff=max( abs( beta_glmnet - admm_fit )))) </code></pre>
+<pre><code>##    cd_diff admm_diff
+## 1 825.0961  3.179658</code></pre>
+<hr />
+</div>
+</div>
+<div id="bonus" class="section level1">
+<h1>Bonus</h1>
+<pre class="r"><code>#set parameters for simulation
+rho &lt;- 0.9
+n &lt;- 200
+p &lt;- 10
+
+#create covariance matrix
+cov_matrix &lt;- matrix(0, nrow = p, ncol = p)
+for (i in 1:p) {
+  for (j in 1:p) {
+    cov_matrix[i, j] &lt;- rho^abs(i - j)
+  }
+}
+
+#simulate data
+set.seed(100)  # for reproducibility
+X &lt;- MASS::mvrnorm(n = n, mu = rep(0, p), Sigma = cov_matrix)
+
+#set b
+b &lt;- c(1, rep(0, p - 1))
+
+#lambda value
+lambda &lt;- 0.01
+
+#ADMM algorithm
+elastic_cd &lt;- cg_cd_alpha(X, b, lambda, alpha=.05)
+elastic_admm &lt;- cg_admm_alpha(X, b, lambda, alpha=.05)
+
+print(data.frame(cd=elastic_cd,admm=elastic_admm))</code></pre>
+<pre><code>##             cd         admm
+## 1   4.40119730  4.423218413
+## 2  -3.54206533 -3.502717559
+## 3   0.00000000 -0.037201344
+## 4  -0.25441152 -0.281009545
+## 5  -0.12047687 -0.123526054
+## 6  -0.48951943 -0.550198886
+## 7   0.20632229  0.265139319
+## 8   0.00000000 -0.006547498
+## 9   0.11287137  0.209685576
+## 10 -0.08226291 -0.178598609</code></pre>
 </div>
 
 

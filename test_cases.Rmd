@@ -6,14 +6,11 @@ output: html_document
 ---
 
 ```{r}
-knitr::opts_chunk$set(echo = FALSE)
-library(MASS)
-library(Rcpp)
-library(RcppArmadillo)
+knitr::opts_chunk$set(echo = T)
+install.packages("mycglassoG2_0.1.0.tar.gz")
 
-sourceCpp("/Users/cschaef3/Documents/GitHub/1930_final_project/coordinate_descent_algo_alt.cpp")
-sourceCpp("/Users/cschaef3/Documents/GitHub/1930_final_project/admm_cpp_v3.cpp")
-source("/Users/cschaef3/Documents/GitHub/1930_final_project/project_functions.R")
+library(mycglassoG2)
+library(MASS)
 
 obj <- function(S, b, u, lambda = 0.2) {
   ucol <- matrix(u, ncol = 1)
@@ -36,10 +33,16 @@ lambda <- 0.2
 
 cd1 <- cg_cd(X, b, lambda)
 admm1 <- cg_admm(X, b, lambda)
-cd_elastic1 <- cg_cd_alpha(X, b, lambda, alpha=.05)
-admm_elastic1 <- cg_admm_alpha(X, b, lambda, alpha=.05)
+cd_elastic1 <- cg_cd_alpha(X, b, lambda)
+admm_elastic1 <- cg_admm_alpha(X, b, lambda)
 
 print(data.frame(cd_cpp=cd1,admm_cpp=admm1,cd_elastic=cd_elastic1, admm_elastic=admm_elastic1))
+```
+```{r}
+cd <- obj(S, b, cd1, lambda)
+admm <- obj(S, b, admm1, lambda)
+cd2 <- obj(S, b, cd_elastic1, lambda)
+admm2 <- obj(S, b, cd1, lambda)
 ```
 
 
@@ -56,8 +59,8 @@ lambda <- 0.4
 
 cd2 <- cg_cd(X, b, lambda)
 admm2 <- cg_admm(X, b, lambda)
-cd_elastic2 <- cg_cd_alpha(X, b, lambda, alpha=.05)
-admm_elastic2 <- cg_admm_alpha(X, b, lambda, alpha=.05)
+cd_elastic2 <- cg_cd_alpha(X, b, lambda)
+admm_elastic2 <- cg_admm_alpha(X, b, lambda)
 
 print(data.frame(cd_cpp=cd2,admm_cpp=admm2,cd_elastic=cd_elastic2, admm_elastic=admm_elastic2))
 ```
@@ -79,8 +82,8 @@ lambda <- 0.2
 
 cd3 <- cg_cd(X, b, lambda)
 admm3 <- cg_admm(X, b, lambda)
-cd_elastic3 <- cg_cd_alpha(X, b, lambda, alpha=.05)
-admm_elastic3 <- cg_admm_alpha(X, b, lambda, alpha=.05)
+cd_elastic3 <- cg_cd_alpha(X, b, lambda)
+admm_elastic3 <- cg_admm_alpha(X, b, lambda)
 
 print(data.frame(cd_cpp=cd3,admm_cpp=admm3,cd_elastic=cd_elastic3, admm_elastic=admm_elastic3))
 
@@ -102,8 +105,8 @@ lambda <- 0.4
 
 cd4 <- cg_cd(X, b, lambda)
 admm4 <- cg_admm(X, b, lambda)
-cd_elastic4 <- cg_cd_alpha(X, b, lambda, alpha=.05)
-admm_elastic4 <- cg_admm_alpha(X, b, lambda, alpha=.05)
+cd_elastic4 <- cg_cd_alpha(X, b, lambda)
+admm_elastic4 <- cg_admm_alpha(X, b, lambda)
 
 print(data.frame(cd_cpp=cd4,admm_cpp=admm4,cd_elastic=cd_elastic4, admm_elastic=admm_elastic4))
 
